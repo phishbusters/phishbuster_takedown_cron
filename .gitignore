@@ -1,2 +1,4 @@
 cron_env/
 __py_cache__
+
+.env
