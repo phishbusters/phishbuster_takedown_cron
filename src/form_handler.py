@@ -3,9 +3,13 @@ from selenium import webdriver
 from selenium.webdriver.support.ui import WebDriverWait
 from selenium.webdriver.support import expected_conditions as EC
 from selenium.webdriver.common.by import By
+from pdf_to_image import convert_pdf_to_jpg
+
 import time
+import os
 
 def complete_impersonation_form(form_url, profile_id, company_name, path_to_pdf):
+    print('Starting selenium process')
     driver = webdriver.Chrome()
     driver.get(form_url)
     wait = WebDriverWait(driver, 10)
@@ -32,10 +36,20 @@ def complete_impersonation_form(form_url, profile_id, company_name, path_to_pdf)
     
     email_field.send_keys("phishbusters@example.com")
 
+    # An account is pretending to be me (RADIO)
+    wait.until(EC.presence_of_element_located((By.XPATH, "//input[@type='radio'][@value='Account']")))
+    radio_button = driver.find_element(By.XPATH, "//input[@type='radio'][@value='Account']")
+    radio_button.click()
+
     # "Username of the account you are reporting"
-    username_field = driver.find_element(By.XPATH,
-        "//span[text()='Which entity are you reporting?']/following::input[@type='radio'][@value='Account']")
+    wait.until(EC.presence_of_element_located((By.XPATH, "//span[text()='Username of the account you are reporting']/following::input")))
+    username_field = driver.find_element(By.XPATH, "//span[text()='Username of the account you are reporting']/following::input")
     username_field.send_keys("@" + profile_id)
+
+    # The account is using multiple elements of my identity (name)...
+    wait.until(EC.presence_of_element_located((By.XPATH, "//input[@type='radio'][@value='Self']")))
+    pretending_radio_button = driver.find_element(By.XPATH, "//input[@type='radio'][@value='Self']")
+    pretending_radio_button.click()
 
     # Description
     description_textarea = driver.find_element(By.XPATH,
@@ -46,11 +60,15 @@ def complete_impersonation_form(form_url, profile_id, company_name, path_to_pdf)
 
     # "Confirm your identity file upload"
     upload_field = driver.find_element(By.ID, 'file-upload')
-    upload_field.send_keys(path_to_pdf)
+    # Due to Twitter removing PDF, we need to parse the file into JPG
+    image_path = convert_pdf_to_jpg(path_to_pdf, '/images')
+    absolute_pdf_path = os.path.abspath(image_path)
+    upload_field.send_keys(absolute_pdf_path)
 
     # submit
+    print('Submitting form')
     submit_button = driver.find_element(By.XPATH, "//button[text()='Submit']")
-    # submit_button.click()
+    submit_button.click()
 
     try:
         WebDriverWait(driver, 20).until(
@@ -66,3 +84,6 @@ def complete_impersonation_form(form_url, profile_id, company_name, path_to_pdf)
         return False
     
     # time.sleep(15)
+
+# if __name__ == "__main__":
+#     complete_impersonation_form('https://help.twitter.com/en/forms/authenticity/impersonation', 'profile_id', 'company_name', 'path_to_a_pdf')

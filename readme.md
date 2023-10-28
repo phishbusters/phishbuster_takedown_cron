@@ -29,3 +29,18 @@ To run the project, follow these steps:
 ```bash
 python src/main.py
 ```
+
+## Testing the selenium
+
+If for some reason you don't want to test with the database, you can easily run selenium without. Just uncomment:
+
+```python
+ if __name__ == "__main__":
+     complete_impersonation_form('https://help.twitter.com/en/forms/authenticity/impersonation', 'profile_id', 'company_name', 'path_to_a_pdf')
+```
+
+In the `form_handler.py` file and then
+
+```bash
+python src/form_handler.py
+```
