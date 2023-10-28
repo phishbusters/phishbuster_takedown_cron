@@ -4,4 +4,4 @@ python-dotenv
 selenium
 webdriver-manager
 autopep8
-pdf2image
+PyMuPDF
